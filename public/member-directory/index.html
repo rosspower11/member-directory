@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cohort 1.0 — Member Directory</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --dark-bg:#1A1A1A;--card-dark:#2A2A2A;--border:#333;
+    --steel:#6B8FAD;--steel20:rgba(107,143,173,.2);
+    --body:#9CA3AF;--white:#FFF;
+    --green:#10B981;--purple:#8B5CF6;--orange:#F59E0B;
+    --pink:#EC4899;--red:#EF4444;
+  }
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--dark-bg);color:var(--white);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+  /* NAV */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(26,26,26,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+  .nav-brand{font-size:13px;letter-spacing:.15em;font-weight:600;color:var(--body)}
+  .nav-brand span{color:var(--steel)}
+  .nav-pill{font-size:11px;letter-spacing:.12em;font-weight:600;color:var(--steel);background:var(--steel20);padding:4px 12px;border-radius:999px}
+
+  /* HERO */
+  .hero{padding:100px 24px 40px;max-width:1200px;margin:0 auto;position:relative}
+  .hero::before{content:'';position:absolute;top:0;left:0;right:0;height:300px;background:linear-gradient(135deg,rgba(107,143,173,.08),transparent 60%);pointer-events:none}
+  .hero-label{font-size:11px;letter-spacing:.2em;font-weight:700;color:var(--steel);margin-bottom:12px;position:relative}
+  .hero h1{font-size:clamp(28px,4vw,40px);font-weight:800;line-height:1.15;margin-bottom:8px;position:relative}
+  .hero p{font-size:16px;color:var(--body);max-width:600px;line-height:1.6;position:relative}
+  .hero-stats{display:flex;gap:24px;margin-top:24px;position:relative}
+  .stat{display:flex;align-items:center;gap:8px}
+  .stat-num{font-size:24px;font-weight:800;color:var(--steel)}
+  .stat-label{font-size:11px;letter-spacing:.1em;color:var(--body);text-transform:uppercase}
+
+  /* GRID */
+  .grid-wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+
+  /* CARD */
+  .card{background:var(--card-dark);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .3s ease}
+  .card:hover{border-color:var(--steel);transform:translateY(-4px);box-shadow:0 12px 40px rgba(107,143,173,.15)}
+  .card-top{height:6px;background:linear-gradient(90deg,var(--steel),transparent)}
+  .card-body{padding:24px}
+  .card-hdr{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+  .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);flex-shrink:0;background:var(--border)}
+  .card-name{font-size:18px;font-weight:700;line-height:1.2}
+  .card-role{font-size:12px;color:var(--body);margin-top:2px;line-height:1.4}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .badge{font-size:10px;letter-spacing:.08em;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+  .b-journey{background:var(--steel20);color:var(--steel)}
+  .b-bg{background:rgba(139,92,246,.15);color:var(--purple)}
+  .card-intro{font-size:13px;color:var(--body);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card-ft{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .dots{display:flex;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;opacity:.7}
+  .card-arrow{font-size:14px;color:var(--steel);transition:transform .2s}
+  .card:hover .card-arrow{transform:translateX(4px)}
+
+  /* MODAL */
+  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:24px}
+  .overlay.open{display:flex}
+  .modal{background:var(--dark-bg);border:1px solid var(--border);border-radius:20px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;position:relative;animation:modalIn .3s ease}
+  @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-x{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:var(--card-dark);border:1px solid var(--border);color:var(--body);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:all .2s;line-height:1}
+  .modal-x:hover{color:var(--white);border-color:var(--steel)}
+  .m-hero{padding:40px 40px 24px;border-bottom:1px solid var(--border);position:relative}
+  .m-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:120px;background:linear-gradient(135deg,rgba(107,143,173,.12),transparent 60%);border-radius:20px 20px 0 0;pointer-events:none}
+  .m-row{display:flex;align-items:center;gap:20px;position:relative}
+  .m-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--steel);background:var(--border)}
+  .m-name{font-size:28px;font-weight:800;line-height:1.15}
+  .m-industry{font-size:14px;color:var(--body);margin-top:4px}
+  .m-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;position:relative}
+  .m-badge{font-size:11px;letter-spacing:.06em;font-weight:600;padding:4px 14px;border-radius:999px}
+  .m-sec{padding:24px 40px;border-bottom:1px solid var(--border)}
+  .m-sec:last-child{border-bottom:none;padding-bottom:40px}
+  .m-label{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--steel);margin-bottom:12px}
+  .m-sec p{font-size:14px;color:var(--body);line-height:1.7}
+  .tags{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:11px;font-weight:600;padding:5px 14px;border-radius:8px;background:rgba(255,255,255,.05);color:var(--body)}
+  .exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+  .exp{font-size:11px;font-weight:600;text-align:center;padding:8px 10px;border-radius:8px;background:var(--card-dark);border:1px solid var(--border);color:var(--body)}
+  .exp.on{background:var(--steel20);border-color:var(--steel);color:var(--steel)}
+  .socials{display:flex;gap:10px;flex-wrap:wrap}
+  .soc-link{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:10px;background:var(--card-dark);border:1px solid var(--border);color:var(--body);text-decoration:none;font-size:13px;font-weight:500;transition:all .2s}
+  .soc-link:hover{border-color:var(--steel);color:var(--steel)}
+  .soc-icon{font-size:11px;font-weight:700;width:24px;height:24px;border-radius:6px;background:var(--steel20);color:var(--steel);display:flex;align-items:center;justify-content:center}
+  .modal::-webkit-scrollbar{width:6px}
+  .modal::-webkit-scrollbar-track{background:transparent}
+  .modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  @media(max-width:640px){
+    .grid{grid-template-columns:1fr}
+    .m-hero,.m-sec{padding-left:24px;padding-right:24px}
+    .m-name{font-size:22px}.m-avatar{width:64px;height:64px}
+    .hero-stats{flex-direction:column;gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">ai powered <span>x</span> claude</div>
+  <div class="nav-pill">COHORT 1.0</div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">MEMBER DIRECTORY</div>
+  <h1>Meet Your Cohort</h1>
+  <p>11 ambitious people, one shared mission — master Claude and transform how they work. Get to know your fellow learners.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">11</span><span class="stat-label">Members</span></div>
+    <div class="stat"><span class="stat-num">6</span><span class="stat-label">Backgrounds</span></div>
+    <div class="stat"><span class="stat-num">10</span><span class="stat-label">Industries</span></div>
+  </div>
+</div>
+
+<div class="grid-wrap">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+var GOAL_COLORS = {
+  "Build Things":  "#6B8FAD",
+  "Save Time":     "#10B981",
+  "Confidence":    "#8B5CF6",
+  "Launch Faster": "#F59E0B",
+  "Automate Workflows": "#EC4899",
+  "Generate Revenue":   "#EF4444"
+};
+
+var ALL_EXP = ["Basic Chat","Projects","Artifacts","Landing Page","Cowork","Claude Code","MCP/Skills","API"];
+
+var M = [
+  {
+    name:"Smiljan Mori",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774540327061-smiljan-mori.jpg",
+    industry:"Finance / Banking, Education / Training, Media",
+    background:"Established Founder",
+    journey:"Casual User",
+    intro:"I help entrepreneurs build systems to earn, protect, and multiply their money, while creating scalable businesses in the insurance and financial industry. I joined this accelerator because I want to leverage AI to scale my business, automate key processes, and build next-generation tools for sales, recruitment, and agency growth.",
+    success:"I know how to use Claude and save time.",
+    goals:["Build Things","Save Time","Generate Revenue"],
+    challenges:["Technical Barrier","No Time","Business Outcomes","Keeping Up"],
+    experience:["Never Used"],
+    linkedin:"https://www.linkedin.com/in/smiljanmori",
+    instagram:"@smillionmori",
+    x:"@SmiljanMori",
+    website:"www.smiljanmori.com",
+    connect:"Anyone building AI tools, scaling coaching or sales businesses, or interested in partnerships in the financial and insurance space.",
+    fun:"Enjoys fitness, road cycling, and personal development. Dream destination: New Zealand."
+  },
+  {
+    name:"Greg Lingard",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774600978434-greg-lingard.jpg",
+    industry:"Healthcare / Wellness",
+    background:"Established Founder",
+    journey:"Casual User",
+    intro:"I run an online coaching business called KARVED. I've joined this accelerator because I want to stay ahead of the curve in my field, and better leverage my time for scaling the business so I can focus on the key needle movers.",
+    success:"Having the right prompts and instructions to give AI context. Building templates for scalable content. Systemizing workflows for digital products and email management.",
+    goals:["Save Time","Confidence","Automate Workflows","Generate Revenue"],
+    challenges:["Don't Know What's Possible","Technical Barrier","No Time","Business Outcomes"],
+    experience:["Basic Chat","Projects"],
+    linkedin:"",
+    instagram:"@LINGYLIFTS",
+    x:"",
+    website:"WWW.KARVED.COM.AU",
+    connect:"Anyone who works in a similar online field — there are plenty of developments coming over the next 12-24 months to scale.",
+    fun:"Former rugby player, now into gym and CrossFit. Just moved to Bali. Goals: get barrelled in Uluwatu and be fluent in Spanish."
+  },
+  {
+    name:"Myriam Parada",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774539729114-myriam-parada.jpg",
+    industry:"Events — The Offline Club",
+    background:"Early-Stage Business",
+    journey:"Casual User",
+    intro:"I'm Miri, founder of the Offline Club Bali. I joined this accelerator because I'm curious and happy to become a nerd. What excites me most about AI is that it transforms my creative way of thinking into a new opportunity.",
+    success:"Building a full stack ecosystem with Claude, and finding a new creative process with Claude for my old role as creative director.",
+    goals:["Build Things","Save Time","Confidence","Launch Faster","Generate Revenue"],
+    challenges:["Inconsistent Outputs","Don't Know What's Possible","Business Outcomes"],
+    experience:["Basic Chat","Projects","Artifacts","Cowork"],
+    linkedin:"https://www.linkedin.com/in/myriam-parada/",
+    instagram:"@___my.pa___",
+    x:"",
+    website:"https://www.theoffline-club.com/city-chapters/bali-chapter",
+    connect:"Anyone who is a problem-solving designer by heart and pioneer of transformative thinking.",
+    fun:"Loves surfing, sketching, and good vibes in sun and nature. Dream destination: South Africa."
+  },
+  {
+    name:"Aaron Sherwood",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774542149908-aaron-sherwood.jpg",
+    industry:"Technology / Software, Finance, Healthcare",
+    background:"Leadership",
+    journey:"Active Builder",
+    intro:"I run an insurtech called Rehuman and Longbow. I joined this accelerator because I think I'm leveraging about 15% of Claude's capability. I'm a non-technical founder, so mastering the basics is really important for me.",
+    success:"Move beyond simple prompts, explore full agentic capability — especially in website design and forms.",
+    goals:["Build Things","Save Time","Confidence","Generate Revenue"],
+    challenges:["Don't Know What's Possible","Technical Barrier"],
+    experience:["Basic Chat","Artifacts"],
+    linkedin:"https://www.linkedin.com/in/aaron-sherwood-324203a7/",
+    instagram:"",
+    x:"",
+    website:"",
+    connect:"Anyone in venture capital, health insurance or health and wellness.",
+    fun:"Enjoys tennis, travelling, and wants to get into golf this year. Dream destination: Costa Rica."
+  },
+  {
+    name:"Adrian Spragg",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774609454372-adrian-spragg.jpg",
+    industry:"Consulting / Professional Services",
+    background:"Leadership",
+    journey:"Casual User",
+    intro:"I have just left Laing O'Rourke ahead of a new opportunity in consulting. I joined this accelerator because I need a structured programme to really get going. What excites me most is the opportunity to completely reinvent a business and how it operates.",
+    success:"Be proficient with Claude for social media management, article curation, producing websites, and automating a business.",
+    goals:["Build Things","Save Time","Confidence"],
+    challenges:["Inconsistent Outputs","Don't Know What's Possible","Prompting","Technical Barrier","No Time","Keeping Up"],
+    experience:["Basic Chat"],
+    linkedin:"https://www.linkedin.com/in/adrian-spragg-503200125",
+    instagram:"ade._spragg",
+    x:"",
+    website:"",
+    connect:"Anyone interested in how AI can turbo charge professional services.",
+    fun:"Loves travel, food, and motorsport. Dad to Tom (also in the cohort!). Dream destination: Chile."
+  },
+  {
+    name:"Cosmo Mullen",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774537630329-cosmo-mullen.jpg",
+    industry:"Finance / Banking, Healthcare / Wellness",
+    background:"Student/Career Changer",
+    journey:"Casual User",
+    intro:"I work across venture capital and finance. I joined this accelerator because I want to learn how to actually use AI to build something real, not just talk about it. The leverage AI gives one person to do what used to take a whole team excites me most.",
+    success:"Learn and understand the software so I can utilise it in any area of my life. Find ways to proactively implement Claude to save time, learn new skills, and even create a business from it.",
+    goals:["Build Things","Save Time","Confidence","Launch Faster","Automate Workflows","Generate Revenue"],
+    challenges:["Inconsistent Outputs","Don't Know What's Possible","Prompting","Technical Barrier"],
+    experience:["Projects"],
+    linkedin:"https://www.linkedin.com/in/cosmo-mullen",
+    instagram:"@Cos_Mullen",
+    x:"",
+    website:"",
+    connect:"Anyone building something in health, wellness or performance who wants a commercial brain in the room.",
+    fun:"Into gym, ocean surfing, and obsesses over health and performance. Dream destination: Japan."
+  },
+  {
+    name:"Jamie Roy",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774840405671-jamie.jpg",
+    industry:"Business Consulting",
+    background:"Established Founder",
+    journey:"Casual User",
+    intro:"I'm a self-employed business consultant from New Zealand with a focus on professional connection. I use AI in a few professional spaces and want to evolve my skill set and connect with others doing the same.",
+    success:"Being able to see how others are using the tech currently and learn a few strategies for myself.",
+    goals:["Build Things","Save Time","Confidence"],
+    challenges:["Don't Know What's Possible"],
+    experience:["Never Used"],
+    linkedin:"https://www.linkedin.com/in/jamieroy",
+    instagram:"",
+    x:"",
+    website:"",
+    connect:"Anyone who's up for an insightful conversation.",
+    fun:"Enjoys exploring the outdoors. Dream destination: Egypt."
+  },
+  {
+    name:"Aline Magnier",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774803708962-aline-magnier.jpg",
+    industry:"Education / Training, Marketing, Consulting",
+    background:"Early-Stage Business",
+    journey:"Active Builder",
+    intro:"I just quit my job of 5 years working for a big platform for personal development, creating courses and trainings with international top speakers. I'm now building my own mentoring business for experts, speakers, and personal brands.",
+    success:"Become fully confident using Claude as my everyday co-worker. Use Claude as my external brain for self-organization. Make Claude a real business partner for my launch.",
+    goals:["Build Things","Save Time","Confidence","Launch Faster","Automate Workflows","Generate Revenue"],
+    challenges:["Inconsistent Outputs","Don't Know What's Possible","Prompting","Technical Barrier","Business Outcomes","Keeping Up","Trust Issues"],
+    experience:["Basic Chat","Projects","Cowork"],
+    linkedin:"https://www.linkedin.com/in/aline-magnier/",
+    instagram:"@aline.ayu",
+    x:"",
+    website:"alinemagnier.com",
+    connect:"Anyone who works with personal brands, experts, speakers, or building digital products as a solo entrepreneur. Also curious about people combining AI with creative or spiritual work.",
+    fun:"DJ, singer, vocal group creator. Into weightlifting, yoga, Pilates, longevity and biohacking. Dream destinations: Iceland and the Philippines."
+  },
+  {
+    name:"Alistair Mullen",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774729042490-alistair-mullen.jpg",
+    industry:"Finance / Banking, Non-profit / Government",
+    background:"Leadership",
+    journey:"Active Builder",
+    intro:"I'm a former investment banker turned UN climate negotiator. I joined this accelerator because I want to kick ass in Claude before Claude kicks my ass. I can already do 6 months work in a week with Claude Code.",
+    success:"Find a way to manage both climate finance consulting and critical mineral advisory. Learn, meet interesting people, and build recurrent revenue from Claude.",
+    goals:["Build Things","Save Time","Confidence","Launch Faster","Automate Workflows","Generate Revenue"],
+    challenges:["Don't Know What's Possible","Technical Barrier","Keeping Up","Trust Issues"],
+    experience:["Claude Code"],
+    linkedin:"",
+    instagram:"",
+    x:"",
+    website:"www.laconicglobal.com",
+    connect:"Here to help. Share my journey and still humble to know I need a huge amount of help too!",
+    fun:"Has 6 sons (one is on this course \u2014 Cosmo!). 40+ years of golf, once played on the European Tour. Has lived in UK, HK, SA, and now USA. Climate delegate for The Bahamas."
+  },
+  {
+    name:"Tom Spragg",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774613246736-tom-spragg.jpg",
+    industry:"Marketing / Advertising",
+    background:"Established Founder",
+    journey:"Casual User",
+    intro:"I own a small motorsport media agency called Spragg Media. I joined this accelerator because I want to grow my skills and transfer them into benefits that serve all areas of my personal life and business.",
+    success:"Being a sponge of knowledge and using that to actively discover new ways of benefiting my life and business using Claude.",
+    goals:["Build Things","Save Time","Confidence","Launch Faster","Automate Workflows","Generate Revenue"],
+    challenges:["Don't Know What's Possible","Prompting","Technical Barrier","Business Outcomes","Keeping Up"],
+    experience:["Never Used"],
+    linkedin:"https://uk.linkedin.com/in/tom-spragg-253468243",
+    instagram:"tomspragg_racing",
+    x:"",
+    website:"https://www.tomspraggracing.co.uk/about-tom",
+    connect:"Anyone who shares the same goals and aspirations. Open to partnerships and collaborations.",
+    fun:"Into sim racing, motorsports, football, exercise, and food. Dream destination: everywhere, especially Bali."
+  },
+  {
+    name:"Grace Richardson",
+    photo:"https://pub-557b5f7935344f8e91f1d0f115f8ec73.r2.dev/member-photos/1774626375954-grace-richardson.jpg",
+    industry:"Healthcare / Wellness, Consulting",
+    background:"Established Founder",
+    journey:"Active Builder",
+    intro:"I'm an identity and behavioural coach. I joined this accelerator because I want to learn how to optimise my business and save time so I can focus on what I actually do \u2014 coaching and delivering results.",
+    success:"Get full clarity on how to use AI without confusion or getting lost in things.",
+    goals:["Build Things","Save Time","Confidence","Launch Faster","Automate Workflows","Generate Revenue"],
+    challenges:["Inconsistent Outputs","Prompting","Technical Barrier","Business Outcomes"],
+    experience:["Basic Chat","Projects","Artifacts","Landing Page","Cowork","Claude Code","MCP/Skills","API"],
+    linkedin:"https://www.linkedin.com/in/grace-richardson-a4b4a81bb/",
+    instagram:"@gracehrichardson",
+    x:"",
+    website:"",
+    connect:"Anyone who's spiritual, works in a company with opportunities for seminars or trainings, or just has big dreams and takes care of themselves.",
+    fun:"Into calisthenics, BJJ, hiking, good coffee, adventures, and saunas. Dream destination: Peru."
+  }
+];
+
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function trunc(s,n){return s.length>n?s.slice(0,n)+'...':s}
+function getSentences(t,n){var m=t.match(/[^.!?]+[.!?]+/g);if(!m)return t;return m.slice(0,n).join(' ').trim()}
+
+function renderCards(){
+  var g=document.getElementById('grid');
+  g.innerHTML='';
+  M.forEach(function(m,i){
+    var dots='';
+    m.goals.forEach(function(gl){
+      var c=GOAL_COLORS[gl]||'#6B8FAD';
+      dots+='<div class="dot" title="'+esc(gl)+'" style="background:'+c+'"></div>';
+    });
+    g.innerHTML+=
+      '<div class="card" onclick="openModal('+i+')">'+
+        '<div class="card-top"></div>'+
+        '<div class="card-body">'+
+          '<div class="card-hdr">'+
+            '<img class="avatar" src="'+esc(m.photo)+'" alt="'+esc(m.name)+'" loading="lazy">'+
+            '<div><div class="card-name">'+esc(m.name)+'</div>'+
+            '<div class="card-role">'+esc(m.industry)+'</div></div>'+
+          '</div>'+
+          '<div class="badges">'+
+            '<span class="badge b-journey">'+esc(m.journey.toUpperCase())+'</span>'+
+            '<span class="badge b-bg">'+esc(m.background.toUpperCase())+'</span>'+
+          '</div>'+
+          '<div class="card-intro">'+esc(getSentences(m.intro,2))+'</div>'+
+        '</div>'+
+        '<div class="card-ft">'+
+          '<div class="dots">'+dots+'</div>'+
+          '<span class="card-arrow">\u2192</span>'+
+        '</div>'+
+      '</div>';
+  });
+}
+
+function openModal(i){
+  var m=M[i];
+  var o=document.getElementById('overlay');
+  var md=document.getElementById('modal');
+
+  var socials=[];
+  if(m.linkedin){var u=m.linkedin.startsWith('http')?m.linkedin:'https://'+m.linkedin;socials.push({icon:'Li',label:'LinkedIn',url:u})}
+  if(m.instagram){var h=m.instagram.replace(/^@/,'').replace(/\/$/,'');var u2=m.instagram.startsWith('http')?m.instagram:'https://instagram.com/'+h;socials.push({icon:'Ig',label:'@'+h,url:u2})}
+  if(m.x){socials.push({icon:'X',label:m.x,url:'https://x.com/'+m.x.replace('@','')})}
+  if(m.website){var u3=m.website.startsWith('http')?m.website:'https://'+m.website;socials.push({icon:'W',label:m.website.replace(/^https?:\/\//,'').replace(/\/$/,''),url:u3})}
+
+  var goalTags='';
+  m.goals.forEach(function(gl){
+    var c=GOAL_COLORS[gl]||'#6B8FAD';
+    goalTags+='<span class="tag" style="background:'+c+'22;color:'+c+'">'+esc(gl)+'</span>';
+  });
+
+  var expChips='';
+  ALL_EXP.forEach(function(e){
+    var on=m.experience.indexOf(e)>=0||m.experience.indexOf('Never Used')>=0&&false;
+    if(m.experience.indexOf(e)>=0) on=true;
+    expChips+='<div class="exp'+(on?' on':'')+'">'+esc(e)+'</div>';
+  });
+
+  var challengeTags='';
+  m.challenges.forEach(function(c2){challengeTags+='<span class="tag">'+esc(c2)+'</span>'});
+
+  var socialLinks='';
+  socials.forEach(function(s){
+    socialLinks+='<a class="soc-link" href="'+esc(s.url)+'" target="_blank" rel="noopener noreferrer"><span class="soc-icon">'+esc(s.icon)+'</span>'+esc(s.label)+'</a>';
+  });
+
+  md.innerHTML=
+    '<button class="modal-x" onclick="closeModal()">\u00d7</button>'+
+    '<div class="m-hero">'+
+      '<div class="m-row">'+
+        '<img class="m-avatar" src="'+esc(m.photo)+'" alt="'+esc(m.name)+'">'+
+        '<div><div class="m-name">'+esc(m.name)+'</div>'+
+        '<div class="m-industry">'+esc(m.industry)+'</div></div>'+
+      '</div>'+
+      '<div class="m-badges">'+
+        '<span class="m-badge b-journey">'+esc(m.journey.toUpperCase())+'</span>'+
+        '<span class="m-badge b-bg">'+esc(m.background.toUpperCase())+'</span>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="m-sec"><div class="m-label">ABOUT</div><p>'+esc(m.intro)+'</p></div>'+
+    '<div class="m-sec"><div class="m-label">WHAT SUCCESS LOOKS LIKE</div><p>'+esc(m.success)+'</p></div>'+
+    '<div class="m-sec"><div class="m-label">GOALS</div><div class="tags">'+goalTags+'</div></div>'+
+    '<div class="m-sec"><div class="m-label">CLAUDE EXPERIENCE</div><div class="exp-grid">'+expChips+'</div></div>'+
+    '<div class="m-sec"><div class="m-label">BIGGEST CHALLENGES</div><div class="tags">'+challengeTags+'</div></div>'+
+    '<div class="m-sec"><div class="m-label">LOOKING TO CONNECT WITH</div><p>'+esc(m.connect)+'</p></div>'+
+    (m.fun?'<div class="m-sec"><div class="m-label">OUTSIDE OF WORK</div><p>'+esc(m.fun)+'</p></div>':'')+
+    (socials.length?'<div class="m-sec"><div class="m-label">CONNECT</div><div class="socials">'+socialLinks+'</div></div>':'');
+
+  o.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+document.getElementById('overlay').addEventListener('click',function(e){
+  if(e.target===this)closeModal();
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+
+renderCards();
+</script>
+</body>
+</html>
